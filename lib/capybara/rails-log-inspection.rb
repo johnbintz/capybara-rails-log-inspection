@@ -13,14 +13,22 @@ module Capybara
         logger
       end
 
-      attr_writer :backtrace_clean_patterns, :default_log_level, :rack_log_level
+      attr_writer :backtrace_clean_patterns, :default_log_level, :rack_log_level, :filter_request_starts
 
       def default_log_level
-        Logger::WARN
+        Logger::INFO
       end
 
       def rack_log_level
         Logger::WARN
+      end
+
+      def filter_request_starts
+        @filter_request_starts ||= true
+      end
+
+      def clean_rack_output(lines)
+        lines.collect(&:strip).reject { |line| line.empty? || (filter_request_starts && line[%r{^Started }]) }
       end
 
       def backtrace_clean_patterns
@@ -28,12 +36,11 @@ module Capybara
       end
 
       def clean_backtrace(exception)
-        exception.backtrace.reject { |line| line.empty? || backtrace_clean_patterns.any? { |pattern| line[pattern] } }
+        exception.backtrace.collect(&:strip).reject { |line| line.empty? || backtrace_clean_patterns.any? { |pattern| line[pattern] } }
       end
 
       def add_backtrace(exception)
-        clean_backtrace(exception).each { |line| logger_target << "  #{line}\n" }
-        logger_target << "\n"
+        clean_backtrace(exception).each { |line| logger_target << "  #{line}" }
       end
     end
 
@@ -45,8 +52,11 @@ module Capybara
     def output_logs(target = $stderr)
       Capybara::RailsLogInspection.logger_target.rewind
 
-      data = Capybara::RailsLogInspection.logger_target.read
-      target.print(Term::ANSIColor.red, data, Term::ANSIColor.reset) if !data.empty?
+      lines = Capybara::RailsLogInspection.logger_target.read.lines
+
+      Capybara::RailsLogInspection.clean_rack_output(lines).each do |line|
+        target.puts(Term::ANSIColor.red, line, Term::ANSIColor.reset)
+      end
 
       reset_logs
     end

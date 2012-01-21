@@ -1,8 +1,6 @@
 module Capybara
-  module Rails
-    module LogInspection
-      VERSION = "0.0.1"
-    end
+  module RailsLogInspection
+    VERSION = "0.0.1"
   end
 end
 

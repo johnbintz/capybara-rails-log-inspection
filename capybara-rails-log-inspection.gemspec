@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   gem.name          = "capybara-rails-log-inspection"
   gem.require_paths = ["lib"]
-  gem.version       = Capybara::Rails::LogInspection::VERSION
+  gem.version       = Capybara::RailsLogInspection::VERSION
 
   gem.add_runtime_dependency 'term-ansicolor'
 end
