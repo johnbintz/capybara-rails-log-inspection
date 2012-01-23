@@ -28,7 +28,7 @@ module Capybara
       end
 
       def clean_rack_output(lines)
-        lines.collect(&:strip).reject { |line| line.empty? || (filter_request_starts && line[%r{^Started }]) }
+        lines.reject { |line| line.strip.empty? || (filter_request_starts && line[%r{^Started }]) }
       end
 
       def backtrace_clean_patterns
@@ -40,7 +40,7 @@ module Capybara
       end
 
       def add_backtrace(exception)
-        clean_backtrace(exception).each { |line| logger_target << "  #{line}" }
+        clean_backtrace(exception).each { |line| logger_target << "  #{line.strip}" }
       end
     end
 
@@ -55,7 +55,7 @@ module Capybara
       lines = Capybara::RailsLogInspection.logger_target.read.lines
 
       Capybara::RailsLogInspection.clean_rack_output(lines).each do |line|
-        target.puts(Term::ANSIColor.red, line, Term::ANSIColor.reset)
+        target.print(Term::ANSIColor.red, line, Term::ANSIColor.reset)
       end
 
       reset_logs
