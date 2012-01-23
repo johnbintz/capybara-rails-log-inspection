@@ -8,7 +8,7 @@ Errors not bubbling up from your Rails app to Cucumber? Use this!
 require 'capybara/rails-log-inspection/cucumber'
 ```
 
-Exceptions and Rails logging (either `Rails.logger.warn` or `Rails.logger <<`) will pass through to Cucumber.
+Exceptions and Rails logging (`Rails.logger.info`) will pass through to Cucumber.
 No more watching logs or any other nonsense!
 
 ## Installation
