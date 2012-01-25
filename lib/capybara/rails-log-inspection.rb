@@ -40,7 +40,7 @@ module Capybara
       end
 
       def add_backtrace(exception)
-        clean_backtrace(exception).each { |line| logger_target << "  #{line.strip}" }
+        clean_backtrace(exception).each { |line| logger_target << "  #{line.strip}\n" }
       end
     end
 
