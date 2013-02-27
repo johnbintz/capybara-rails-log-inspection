@@ -8,9 +8,11 @@ module Capybara
       end
 
       def logger(level = nil)
-        logger = Logger.new(logger_target)
-        logger.level = level || default_log_level
-        logger
+        return @logger if @logger
+
+        @logger = Logger.new(logger_target)
+        @logger.level = level || default_log_level
+        @logger
       end
 
       attr_writer :backtrace_clean_patterns, :default_log_level, :rack_log_level, :filter_request_starts
@@ -42,6 +44,11 @@ module Capybara
       def add_backtrace(exception)
         clean_backtrace(exception).each { |line| logger_target << "  #{line.strip}\n" }
       end
+
+      def output_line(line, target = $stderr)
+        target.print(Term::ANSIColor.red, line, Term::ANSIColor.reset)
+        target.flush
+      end
     end
 
     def reset_logs
@@ -55,7 +62,7 @@ module Capybara
       lines = Capybara::RailsLogInspection.logger_target.read.lines
 
       Capybara::RailsLogInspection.clean_rack_output(lines).each do |line|
-        target.print(Term::ANSIColor.red, line, Term::ANSIColor.reset)
+        output_line(line, target)
       end
 
       reset_logs
@@ -63,7 +70,19 @@ module Capybara
   end
 end
 
+
 Rails.logger = Capybara::RailsLogInspection.logger
+
+class LogInspectionSubscriber < ActiveSupport::LogSubscriber
+  def process_action(event)
+    if event.payload[:exception]
+      Capybara::RailsLogInspection.output_line "Processing #{event.payload[:method]} #{event.payload[:controller]}##{event.payload[:action]} as #{event.payload[:format]}\n"
+      Capybara::RailsLogInspection.output_line "  #{event.payload[:exception].first}: #{event.payload[:exception].last}\n"
+    end
+  end
+end
+
+LogInspectionSubscriber.attach_to :action_controller
 
 Capybara.server do |app, port|
   require 'rack/handler/webrick'
