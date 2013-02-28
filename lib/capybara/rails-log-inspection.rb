@@ -8,11 +8,9 @@ module Capybara
       end
 
       def logger(level = nil)
-        return @logger if @logger
-
-        @logger = Logger.new(logger_target)
-        @logger.level = level || default_log_level
-        @logger
+        logger = Logger.new(logger_target)
+        logger.level = level || default_log_level
+        logger
       end
 
       attr_writer :backtrace_clean_patterns, :default_log_level, :rack_log_level, :filter_request_starts
@@ -62,7 +60,7 @@ module Capybara
       lines = Capybara::RailsLogInspection.logger_target.read.lines
 
       Capybara::RailsLogInspection.clean_rack_output(lines).each do |line|
-        output_line(line, target)
+        Capybara::RailsLogInspection.output_line(line, target)
       end
 
       reset_logs
